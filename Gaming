@@ -1,0 +1,188 @@
+‏```python
+‏import tkinter as tk
+‏import pyautogui
+‏import tensorflow as tf
+‏from PIL import Image, ImageTk
+
+
+
+
+‏# Define the game constants
+‏ENEMY_WIDTH = 50
+‏ENEMY_HEIGHT = 50
+‏PLAYER_WIDTH = 50
+‏PLAYER_HEIGHT = 50
+
+
+
+
+‏# Load the model
+‏model = tf.keras.models.load_model('gameplay_model.h5')
+
+
+
+
+‏# Define the functions to control the game
+‏def shoot():
+‏    pyautogui.click(button='left')
+
+
+
+
+‏def move_left():
+‏    pyautogui.press('left')
+
+
+
+
+‏def move_right():
+‏    pyautogui.press('right')
+
+
+
+
+‏def jump():
+‏    pyautogui.press('space')
+
+
+
+
+‏# Define the function to teach the AI
+‏def teach_enemy():
+‏    # Get the image of the enemy
+‏    enemy_image = pyautogui.screenshot()
+
+
+
+
+‏    # Save the image
+‏    enemy_image.save('enemy.png')
+    
+‏    # Train the model using the new enemy image
+‏    train_model()
+
+
+
+
+‏# Define the function to train the model
+‏def train_model():
+‏    # Load the enemy image
+‏    enemy_image = Image.open('enemy.png')
+‏    enemy_image = enemy_image.convert('L')
+‏    enemy_image = enemy_image.resize((ENEMY_WIDTH, ENEMY_HEIGHT))
+‏    enemy_pixels = list(enemy_image.getdata())
+
+
+
+
+‏    # Load the player image
+‏    player_image = Image.open('player.png')
+‏    player_image = player_image.convert('L')
+‏    player_image = player_image.resize((PLAYER_WIDTH, PLAYER_HEIGHT))
+‏    player_pixels = list(player_image.getdata())
+
+
+
+
+‏    # Generate the training data
+‏    X_train = []
+‏    y_train = []
+‏    for i in range(10000):
+‏        # Generate a random position for the enemy and player
+‏        enemy_x = random.randint(0, 640 - ENEMY_WIDTH)
+‏        enemy_y = random.randint(0, 480 - ENEMY_HEIGHT)
+‏        player_x = random.randint(0, 640 - PLAYER_WIDTH)
+‏        player_y = random.randint(0, 480 - PLAYER_HEIGHT)
+        
+‏        # Generate the gameplay data for the current position
+‏        gameplay_data = [enemy_x, enemy_y, ENEMY_WIDTH, ENEMY_HEIGHT, player_x, player_y, PLAYER_WIDTH, PLAYER_HEIGHT]
+        
+‏        # Calculate the label for the current position
+‏        if enemy_x < player_x:
+‏            label = 1
+‏        else:
+‏            label = 0
+        
+‏        # Add the training data to the arrays
+‏        X_train.append(gameplay_data)
+‏        y_train.append(label)
+    
+‏    # Convert the training data to numpy arrays
+‏    X_train = np.array(X_train)
+‏    y_train = np.array(y_train)
+    
+‏    # Train the model
+‏    model.fit(X_train, y_train, epochs=10)
+
+
+
+
+‏# Create the user panel
+‏root = tk.Tk()
+‏root.title('AI Game Bot')
+‏root.geometry('400x400')
+
+
+
+
+‏# Add the background image
+‏bg_image = Image.open('background.jpg')
+‏bg_image = ImageTk.PhotoImage(bg_image)
+‏bg_label = tk.Label(root, image=bg_image)
+‏bg_label.place(x=0, y=0)
+
+
+
+
+‏# Add the main label
+‏main_label = tk.Label(root, text='Welcome to the AI Game Bot', font=('Helvetica', 18))
+‏main_label.pack(pady=20)
+
+
+
+
+‏# Add the buttons for controlling the game
+‏shoot_button = tk.Button(root, text='Shoot', font=('Helvetica', 14), command=shoot)
+‏shoot_button.pack(pady=10)
+
+
+
+
+‏move_left_button = tk.Button(root, text='Move Left', font=('Helvetica', 14), command=move_left)
+‏move_left_button.pack(pady=10)
+
+
+
+
+‏move_right_button = tk.Button(root, text='Move Right', font=('Helvetica', 14), command=move_right)
+‏move_right_button.pack(pady=10)
+
+
+
+
+‏jump_button = tk.Button(root, text='Jump', font=('Helvetica', 14), command=jump)
+‏jump_button.pack(pady=10)
+
+
+
+
+‏# Add the button for teaching the AI
+‏teach_button = tk.Button(root, text='Teach Enemy', font=('Helvetica', 14), command=teach_enemy)
+‏teach_button.pack(pady=20)
+
+
+
+
+‏# Add the enemy image label
+‏enemy_image = Image.open('enemy.png')
+‏enemy_image = enemy_image.resize((100, 100))
+‏enemy_image = ImageTk.PhotoImage(enemy_image)
+‏enemy_label = tk.Label(root, image=enemy_image)
+‏enemy_label.pack(pady=20)
+
+
+
+
+‏# Start the main loop
+‏root.mainloop()
+```
